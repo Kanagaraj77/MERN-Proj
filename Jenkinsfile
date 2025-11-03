@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'docker/compose:1.29.2'
+      args '-v /var/run/docker.sock:/var/run/docker.sock'
+    }
+  }
 
   environment {
     COMPOSE_FILE = 'docker-compose.yml'
@@ -12,13 +17,6 @@ pipeline {
       }
     }
 
-     agent {
-        docker {
-            image 'docker/compose:1.29.2'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
-
     stage('Build') {
       steps {
         sh 'docker-compose build'
@@ -28,7 +26,7 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
-        // Add actual test commands here, e.g., bat 'npm test'
+        // Add actual test commands here, e.g., sh 'npm test'
       }
     }
 
