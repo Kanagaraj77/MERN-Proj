@@ -32,3 +32,11 @@ pipeline {
     }
   }
 }
+
+checkout([$class: 'GitSCM',
+  branches: [[name: '*/main']],
+  userRemoteConfigs: [[
+    url: 'https://github.com/Kanagaraj77/MERN-Proj.git',
+    credentialsId: 'github-credentials'
+  ]]
+])
