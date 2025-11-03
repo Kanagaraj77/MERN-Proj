@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Clone') {
       steps {
-        git credentialsId: 'github-credentials', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
+        git branch: 'main', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
 
