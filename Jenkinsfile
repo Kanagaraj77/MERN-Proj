@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Clone') {
       steps {
-        git credentialsId: 'github-credentials', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
+        git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
 
@@ -21,7 +21,6 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
-        // Add actual test commands here, e.g., bat 'npm test'
       }
     }
 
