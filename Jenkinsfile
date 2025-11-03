@@ -1,7 +1,5 @@
 pipeline {
-  agent {
-    label 'WindowsNode'
-  }
+  agent any
 
   environment {
     COMPOSE_FILE = 'docker-compose.yml'
@@ -10,7 +8,7 @@ pipeline {
   stages {
     stage('Clone') {
       steps {
-        git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
+        git credentialsId: 'github-credentials', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
 
@@ -23,6 +21,7 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
+        // Add actual test commands here, e.g., bat 'npm test'
       }
     }
 
