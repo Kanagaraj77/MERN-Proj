@@ -21,6 +21,7 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
+        // Add actual test commands here, e.g., bat 'npm test'
       }
     }
 
@@ -31,12 +32,13 @@ pipeline {
       }
     }
   }
-}
 
-checkout([$class: 'GitSCM',
-  branches: [[name: '*/main']],
-  userRemoteConfigs: [[
-    url: 'https://github.com/Kanagaraj77/MERN-Proj.git',
-    credentialsId: 'github-credentials'
-  ]]
-])
+  post {
+    success {
+      echo 'Pipeline completed successfully!'
+    }
+    failure {
+      echo 'Pipeline failed. Please check the logs.'
+    }
+  }
+}
