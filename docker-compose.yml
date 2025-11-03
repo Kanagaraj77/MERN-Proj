@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # Shared Jenkins instance
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins-C1C2
+    ports:
+      - "9090:8080"  # Jenkins UI
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root
+    restart: unless-stopped
+
+  # Client1 MongoDB
+  mongo_client1:
+    image: mongo
+    container_name: mongo_client1
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data-client1:/data/db
+
+  # Client1 Backend
+  backend_client1:
+    build:
+      context: ./Client-1/server
+      dockerfile: DockerFile
+    container_name: back_client1
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo_client1:27017/mydb
+    depends_on:
+      - mongo_client1
+
+  # Client1 Frontend
+  frontend_client1:
+    build:
+      context: ./Client-1/client
+      dockerfile: DockerFile
+    container_name: front_client1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend_client1
+
+  # Client2 MongoDB
+  mongo_client2:
+    image: mongo
+    container_name: mongo_client2
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data-client2:/data/db
+
+  # Client2 Backend
+  backend_client2:
+    build:
+      context: ./Client-2/server
+      dockerfile: DockerFile
+    container_name: back_client2
+    ports:
+      - "5001:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo_client2:27017/mydb
+    depends_on:
+      - mongo_client2
+
+  # Client2 Frontend
+  frontend_client2:
+    build:
+      context: ./Client-2/client
+      dockerfile: DockerFile
+    container_name: front_client2
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend_client2
+
+volumes:
+  mongo-data-client1:
+  mongo-data-client2:
+  jenkins_home:
