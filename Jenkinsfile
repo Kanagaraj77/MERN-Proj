@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent {
+    label 'WindowsNode'
+  }
 
   environment {
     COMPOSE_FILE = 'docker-compose.yml'
