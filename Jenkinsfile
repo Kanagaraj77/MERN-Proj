@@ -14,7 +14,7 @@ pipeline {
 
     stage('Build') {
       steps {
-        bat 'docker-compose build'
+        sh 'docker-compose build'
       }
     }
 
@@ -27,8 +27,8 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        bat 'docker-compose down'
-        bat 'docker-compose up -d'
+        sh 'docker-compose down'
+        sh 'docker-compose up -d'
       }
     }
   }
