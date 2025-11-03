@@ -1,12 +1,13 @@
 version: '3.8'
 
 services:
+
   # Shared Jenkins instance
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins-C1C2
     ports:
-      - "9090:8080"  # Jenkins UI
+      - "9999:8080"  # Jenkins UI
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
