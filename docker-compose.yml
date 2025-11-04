@@ -3,16 +3,16 @@ version: '3.8'
 services:
 
   # Shared Jenkins instance (optional — define if needed)
-  # jenkins:
-  #   image: jenkins/jenkins:lts
-  #   container_name: jenkins
-  #   ports:
-  #     - "999:8080"
-  #   volumes:
-  #     - jenkins_home:/var/jenkins_home
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   user: root
-  #   restart: unless-stopped
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "999:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root
+    restart: unless-stopped
 
   # ===========================
   # Client1 Services
