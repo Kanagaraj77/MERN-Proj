@@ -25,6 +25,7 @@ services:
       - MONGO_URI=mongodb://mongo_client1:27017/mydb
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    user: root
     depends_on:
       - mongo_client1
 
