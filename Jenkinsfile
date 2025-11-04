@@ -3,11 +3,8 @@ pipeline {
 
   environment {
     COMPOSE_FILE = 'docker-compose.yml'
-  }
-  environment {
     DOCKER_HOST = 'unix:///var/run/docker.sock'
   }
-
 
   stages {
     stage('Clone') {
@@ -30,7 +27,7 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
-        // Add actual test commands here, e.g., bat 'npm test'
+        // Add actual test commands here, e.g., sh 'npm test'
       }
     }
 
