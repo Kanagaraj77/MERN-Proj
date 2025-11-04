@@ -12,8 +12,8 @@ pipeline {
       }
     }
     agent {
-    docker {
-      image 'docker/compose:latest'
+      docker {
+        image 'docker/compose:latest'
     }
   }
 
