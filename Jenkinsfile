@@ -19,7 +19,7 @@ pipeline {
         }
       }
       steps {
-        bat 'docker-compose build'
+        sh 'docker-compose build'
       }
     }
 
