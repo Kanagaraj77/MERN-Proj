@@ -2,8 +2,7 @@ pipeline {
   agent any
 
   environment {
-    COMPOSE_FILE1 = 'docker-compose1.yml'
-    COMPOSE_FILE2 = 'docker-compose2.yml'
+    COMPOSE_FILE = 'docker-compose.yml'
   }
 
   stages {
