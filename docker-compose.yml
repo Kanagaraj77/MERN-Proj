@@ -2,18 +2,6 @@ version: '3.8'
 
 services:
 
-  # Shared Jenkins instance (optional — define if needed)
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    ports:
-      - "999:8080"
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    user: root
-    restart: unless-stopped
-
   # ===========================
   # Client1 Services
   # ===========================
@@ -35,6 +23,8 @@ services:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo_client1:27017/mydb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - mongo_client1
 
@@ -82,8 +72,20 @@ services:
     depends_on:
       - backend_client2
 
+  # ===========================
+  # Admin Utility Container
+  # ===========================
+
+  admin:
+    image: ubuntu
+    container_name: admin_tools
+    volumes:
+      - jenkins_home:/var/jenkins_home   # optional shared volume
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root
+    command: sleep infinity
+
 volumes:
   mongo-data-client1:
   mongo-data-client2:
   jenkins_home:
-  
