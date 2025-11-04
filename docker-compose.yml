@@ -2,19 +2,22 @@ version: '3.8'
 
 services:
 
-  # Shared Jenkins instance
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins-C1C2
-    ports:
-      - "999:8080"  # Jenkins UI
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    user: root
-    restart: unless-stopped
+  # Shared Jenkins instance (optional — define if needed)
+  # jenkins:
+  #   image: jenkins/jenkins:lts
+  #   container_name: jenkins
+  #   ports:
+  #     - "999:8080"
+  #   volumes:
+  #     - jenkins_home:/var/jenkins_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   user: root
+  #   restart: unless-stopped
 
-  # Client1 MongoDB
+  # ===========================
+  # Client1 Services
+  # ===========================
+
   mongo_client1:
     image: mongo
     container_name: mongo_client1
@@ -23,7 +26,6 @@ services:
     volumes:
       - mongo-data-client1:/data/db
 
-  # Client1 Backend
   backend_client1:
     build:
       context: ./Client-1/server
@@ -36,7 +38,6 @@ services:
     depends_on:
       - mongo_client1
 
-  # Client1 Frontend
   frontend_client1:
     build:
       context: ./Client-1/client
@@ -47,7 +48,10 @@ services:
     depends_on:
       - backend_client1
 
-  # Client2 MongoDB
+  # ===========================
+  # Client2 Services
+  # ===========================
+
   mongo_client2:
     image: mongo
     container_name: mongo_client2
@@ -56,7 +60,6 @@ services:
     volumes:
       - mongo-data-client2:/data/db
 
-  # Client2 Backend
   backend_client2:
     build:
       context: ./Client-2/server
@@ -69,7 +72,6 @@ services:
     depends_on:
       - mongo_client2
 
-  # Client2 Frontend
   frontend_client2:
     build:
       context: ./Client-2/client
