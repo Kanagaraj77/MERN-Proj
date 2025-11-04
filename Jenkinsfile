@@ -14,11 +14,6 @@ pipeline {
     }
 
     stage('Build') {
-      agent {
-        docker {
-          image 'docker/compose:latest'
-        }
-      }
       steps {
         sh 'docker-compose build'
       }
@@ -27,7 +22,7 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
-        // Add actual test commands here, e.g., sh 'npm test'
+        // Add actual test commands here
       }
     }
 
