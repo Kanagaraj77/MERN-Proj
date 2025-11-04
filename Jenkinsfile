@@ -11,13 +11,13 @@ pipeline {
         git branch: 'main', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
-    agent {
-      docker {
-        image 'docker/compose:latest'
-    }
-  }
 
     stage('Build') {
+      agent {
+        docker {
+          image 'docker/compose:latest'
+        }
+      }
       steps {
         bat 'docker-compose build'
       }
@@ -26,14 +26,14 @@ pipeline {
     stage('Test') {
       steps {
         echo 'Running tests...'
-        // Add actual test commands here, e.g., sh 'npm test'
+        // Add actual test commands here, e.g., bat 'npm test'
       }
     }
 
     stage('Deploy') {
       steps {
-        sh 'docker-compose down'
-        sh 'docker-compose up -d'
+        bat 'docker-compose down'
+        bat 'docker-compose up -d'
       }
     }
   }
