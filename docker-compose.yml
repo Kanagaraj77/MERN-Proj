@@ -85,7 +85,6 @@ services:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     command: sleep infinity
-    # user: root is optional; Ubuntu runs as root by default
 
 volumes:
   mongo-data-client1:
