@@ -4,6 +4,10 @@ pipeline {
   environment {
     COMPOSE_FILE = 'docker-compose.yml'
   }
+  environment {
+    DOCKER_HOST = 'unix:///var/run/docker.sock'
+  }
+
 
   stages {
     stage('Clone') {
