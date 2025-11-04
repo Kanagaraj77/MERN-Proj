@@ -81,10 +81,22 @@ services:
   admin:
     image: ubuntu
     container_name: admin_tools
+    user: root
+    privileged: true
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-    command: sleep infinity
+    ports:
+    - "8080:8080"
+    command: 
+      bash -c "apt update &&
+      apt install -y curl gnupg openjdk-11-jdk docker.io &&
+      curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | tee /usr/share/keyrings/jenkins-keyring.asc &&
+      echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | tee /etc/apt/sources.list.d/jenkins.list &&
+      apt update &&
+      apt install -y jenkins &&
+      service jenkins start &&
+      sleep infinity"
 
 volumes:
   mongo-data-client1:
