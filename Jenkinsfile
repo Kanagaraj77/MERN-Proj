@@ -12,6 +12,18 @@ pipeline {
       }
     }
 
+    stage('Check Docker') {
+      steps {
+        script {
+          if (isUnix()) {
+            sh 'docker --version'
+          } else {
+            bat 'docker --version'
+          }
+        }
+      }
+    }
+
     stage('Build') {
       agent {
         docker {
@@ -19,21 +31,34 @@ pipeline {
         }
       }
       steps {
-        sh 'docker-compose build'
+        script {
+          if (isUnix()) {
+            sh 'docker-compose build'
+          } else {
+            bat 'docker-compose build'
+          }
+        }
       }
     }
 
     stage('Test') {
       steps {
         echo 'Running tests...'
-        // Add actual test commands here, e.g., bat 'npm test'
+        // Add actual test commands here
       }
     }
 
     stage('Deploy') {
       steps {
-        bat 'docker-compose down'
-        bat 'docker-compose up -d'
+        script {
+          if (isUnix()) {
+            sh 'docker-compose down'
+            sh 'docker-compose up -d'
+          } else {
+            bat 'docker-compose down'
+            bat 'docker-compose up -d'
+          }
+        }
       }
     }
   }
