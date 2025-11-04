@@ -7,7 +7,7 @@ services:
   # ===========================
 
   mongo_client1:
-    image: mongo
+    image: mongo:6.0
     container_name: mongo_client1
     ports:
       - "27017:27017"
@@ -43,7 +43,7 @@ services:
   # ===========================
 
   mongo_client2:
-    image: mongo
+    image: mongo:6.0
     container_name: mongo_client2
     ports:
       - "27018:27017"
