@@ -88,6 +88,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
     - "8080:8080"
+    entrypoint: /bin/bash
     command: 
       bash -c "apt update &&
       apt install -y curl gnupg openjdk-11-jdk docker.io &&
