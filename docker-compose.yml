@@ -25,7 +25,6 @@ services:
       - MONGO_URI=mongodb://mongo_client1:27017/mydb
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    user: root
     depends_on:
       - mongo_client1
 
@@ -60,6 +59,8 @@ services:
       - "5001:5000"
     environment:
       - MONGO_URI=mongodb://mongo_client2:27017/mydb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - mongo_client2
 
@@ -81,10 +82,10 @@ services:
     image: ubuntu
     container_name: admin_tools
     volumes:
-      - jenkins_home:/var/jenkins_home   # optional shared volume
+      - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-    user: root
     command: sleep infinity
+    # user: root is optional; Ubuntu runs as root by default
 
 volumes:
   mongo-data-client1:
