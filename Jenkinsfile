@@ -16,25 +16,31 @@ pipeline {
     stage('Detect Changed Client') {
       steps {
         script {
-          // Get the last changed files from git
+          // Compare last commit with previous commit
           def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
           echo "Changed files: ${changedFiles}"
 
-          // Default to empty
           env.CLIENT = ""
 
-          // Detect which client changed
-          if (changedFiles.any { it.startsWith('Client-1/') }) {
+          def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
+          def client2Changed = changedFiles.any { it.startsWith('Client-2/') }
+
+          if (client1Changed && !client2Changed) {
             env.CLIENT = "Client-1"
-          } else if (changedFiles.any { it.startsWith('Client-2/') }) {
+          } else if (client2Changed && !client1Changed) {
             env.CLIENT = "Client-2"
+          } else if (client1Changed && client2Changed) {
+            // Optional: handle if both changed (skip or deploy both)
+            echo "⚠️ Both client1 and client2 changed. Skipping automatic deploy to avoid overlap."
+            currentBuild.result = 'SUCCESS'
+            error("Multiple clients changed in same commit. Manual deployment required.")
+          } else {
+            echo "No changes in client folders. Skipping pipeline."
+            currentBuild.result = 'SUCCESS'
+            error("No relevant changes found.")
           }
 
-          if (env.CLIENT == "") {
-            error "No changes detected in client1 or client2 folders. Skipping build."
-          } else {
-            echo "Detected change in ${env.CLIENT}"
-          }
+          echo "Detected change in ${env.CLIENT}"
         }
       }
     }
@@ -58,8 +64,7 @@ pipeline {
       steps {
         dir("${env.CLIENT}") {
           echo "Running tests for ${env.CLIENT}..."
-          // Add test commands here, e.g.
-          // sh 'npm test'
+          // Add test commands here
         }
       }
     }
@@ -69,13 +74,10 @@ pipeline {
         expression { env.CLIENT != "" }
       }
       steps {
-        script {
-          dir("${env.CLIENT}") {
-            echo "Deploying ${env.CLIENT}..."
-            // Stop and restart containers for this client only
-            sh 'docker-compose down'
-            sh 'docker-compose up -d'
-          }
+        dir("${env.CLIENT}") {
+          echo "Deploying ${env.CLIENT}..."
+          sh 'docker-compose down'
+          sh 'docker-compose up -d'
         }
       }
     }
