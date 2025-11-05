@@ -3,20 +3,32 @@
 services:
 
   # ===========================
-  # NGINX Reverse Proxy
+  # NGINX for Client-1
   # ===========================
-  # nginx:
+  # nginx_client1:
   #   image: nginx:stable-alpine
-  #   container_name: nginx_proxy
+  #   container_name: nginx_client1
   #   ports:
-  #   - "3001:80"
+  #     - "3001:80"
   #   volumes:
-  #   - ./nginx.conf:/etc/nginx/conf.d/default.conf
-  #   - ./Client-1/client/build:/usr/share/nginx/Client-1
+  #     - ./nginx-client1.conf:/etc/nginx/conf.d/default.conf
+  #     - ./Client-1/client/build:/usr/share/nginx/Client-1
   #   depends_on:
-  #   - backend_client1
-   
+  #     - backend_client1
 
+  # ===========================
+  # NGINX for Client-2
+  # ===========================
+  # nginx_client2:
+  #   image: nginx:stable-alpine
+  #   container_name: nginx_client2
+  #   ports:
+  #     - "3002:80"
+  #   volumes:
+  #     - ./nginx-client2.conf:/etc/nginx/conf.d/default.conf
+  #     - ./Client-2/client/build:/usr/share/nginx/Client-2
+  #   depends_on:
+  #     - backend_client2
 
   # ===========================
   # Client 1 Services
