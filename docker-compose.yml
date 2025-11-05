@@ -35,7 +35,7 @@ services:
       dockerfile: DockerFile
     container_name: backend_client1
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - MONGO_URI=mongodb://mongo_client1:27017/mydb
     volumes:
@@ -70,7 +70,7 @@ services:
       dockerfile: DockerFile
     container_name: backend_client2
     ports:
-      - "5001:5000"
+      - "5002:5000"
     environment:
       - MONGO_URI=mongodb://mongo_client2:27017/mydb
     volumes:
