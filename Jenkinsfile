@@ -46,43 +46,26 @@ pipeline {
     }
 
     stage('Build') {
-      when {
-        expression { env.CLIENT != "" }
-      }
-      steps {
-        dir("${env.CLIENT}") {
-          echo "Building Docker images for ${env.CLIENT}..."
-          sh 'docker-compose build'
-        }
-      }
-    }
-
-    stage('Test') {
-      when {
-        expression { env.CLIENT != "" }
-      }
-      steps {
-        dir("${env.CLIENT}") {
-          echo "Running tests for ${env.CLIENT}..."
-          // Add test commands here
-        }
-      }
-    }
-
-    stage('Deploy') {
-      when {
-        expression { env.CLIENT != "" }
-      }
-      steps {
-        dir("${env.CLIENT}") {
-          echo "Deploying ${env.CLIENT}..."
-          sh 'docker-compose down'
-          sh 'docker-compose up -d'
-        }
-      }
+  when { expression { env.CLIENT != "" } }
+  steps {
+    script {
+      def composeFile = env.CLIENT == 'client1' ? 'docker-compose-client1.yml' : 'docker-compose-client2.yml'
+      sh "docker-compose -f ${composeFile} build"
     }
   }
+}
 
+stage('Deploy') {
+  when { expression { env.CLIENT != "" } }
+  steps {
+    script {
+      def composeFile = env.CLIENT == 'client1' ? 'docker-compose-client1.yml' : 'docker-compose-client2.yml'
+      sh "docker-compose -f ${composeFile} down"
+      sh "docker-compose -f ${composeFile} up -d"
+    }
+  }
+  }
+  }
   post {
     success {
       echo '✅ Pipeline completed successfully!'
