@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        echo 'Cloning repository...'
+        echo '📦 Cloning repository...'
         git branch: 'main', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
@@ -16,10 +16,11 @@ pipeline {
     stage('Detect Changed Client') {
       steps {
         script {
-          // Compare last commit with previous commit
+          // Get changed files
           def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
-          echo "Changed files: ${changedFiles}"
+          echo "🔍 Changed files: ${changedFiles}"
 
+          // Reset client var
           env.CLIENT = ""
 
           def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
@@ -30,48 +31,66 @@ pipeline {
           } else if (client2Changed && !client1Changed) {
             env.CLIENT = "Client-2"
           } else if (client1Changed && client2Changed) {
-            // Optional: handle if both changed (skip or deploy both)
-            echo "⚠️ Both client1 and client2 changed. Skipping automatic deploy to avoid overlap."
-            currentBuild.result = 'SUCCESS'
-            error("Multiple clients changed in same commit. Manual deployment required.")
+            error("❌ Both Client-1 and Client-2 changed in the same commit. Please deploy separately.")
           } else {
-            echo "No changes in client folders. Skipping pipeline."
-            currentBuild.result = 'SUCCESS'
-            error("No relevant changes found.")
+            error("⚠️ No client folder changes detected. Skipping build.")
           }
 
-          echo "Detected change in ${env.CLIENT}"
+          echo "✅ Detected change in ${env.CLIENT}"
+        }
+      }
+    }
+
+    stage('Select Compose File') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        script {
+          if (env.CLIENT == 'Client-1') {
+            env.COMPOSE_FILE = 'docker-compose-client1.yml'
+          } else if (env.CLIENT == 'Client-2') {
+            env.COMPOSE_FILE = 'docker-compose-client2.yml'
+          } else {
+            error("❌ Invalid CLIENT value: '${env.CLIENT}' — must be 'Client-1' or 'Client-2'")
+          }
+
+          echo "Using compose file: ${env.COMPOSE_FILE}"
         }
       }
     }
 
     stage('Build') {
-  when { expression { env.CLIENT != "" } }
-  steps {
-    script {
-      def composeFile = env.CLIENT == 'client1' ? 'docker-compose-client1.yml' : 'docker-compose-client2.yml'
-      sh "docker-compose -f ${composeFile} build"
+      when { expression { env.CLIENT != "" } }
+      steps {
+        echo "🔧 Building ${env.CLIENT}..."
+        sh "docker-compose -f ${env.COMPOSE_FILE} build"
+      }
     }
-  }
-}
 
-stage('Deploy') {
-  when { expression { env.CLIENT != "" } }
-  steps {
-    script {
-      def composeFile = env.CLIENT == 'client1' ? 'docker-compose-client1.yml' : 'docker-compose-client2.yml'
-      sh "docker-compose -f ${composeFile} down"
-      sh "docker-compose -f ${composeFile} up -d"
+    stage('Test') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        echo "🧪 Running tests for ${env.CLIENT}..."
+        // Add test commands if needed, e.g.:
+        // sh "docker-compose -f ${env.COMPOSE_FILE} run --rm backend npm test"
+      }
+    }
+
+    stage('Deploy') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        echo "🚀 Deploying ${env.CLIENT}..."
+        sh "docker-compose -f ${env.COMPOSE_FILE} down"
+        sh "docker-compose -f ${env.COMPOSE_FILE} up -d"
+      }
     }
   }
-  }
-  }
+
   post {
     success {
-      echo '✅ Pipeline completed successfully!'
+      echo "✅ ${env.CLIENT} pipeline completed successfully!"
     }
     failure {
-      echo '❌ Pipeline failed. Please check logs.'
+      echo "❌ ${env.CLIENT} pipeline failed. Please check the logs."
     }
   }
 }
