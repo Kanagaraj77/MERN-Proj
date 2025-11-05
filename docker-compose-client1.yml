@@ -1,9 +1,15 @@
 version: '3.8'
 
+networks:
+  client1_network:
+    name: client1_network
+
 services:
   mongo_client1:
     image: mongo:6.0
     container_name: mongo_client1
+    networks:
+      - client1_network
     ports:
       - "27017:27017"
     volumes:
@@ -20,6 +26,8 @@ services:
       - MONGO_URI=mongodb://mongo_client1:27017/mydb
     depends_on:
       - mongo_client1
+    networks:
+      - client1_network
 
   frontend_client1:
     build:
@@ -30,6 +38,8 @@ services:
       - "3001:3000"
     depends_on:
       - backend_client1
+    networks:
+      - client1_network
 
 volumes:
   mongo-data-client1:
