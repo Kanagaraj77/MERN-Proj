@@ -17,7 +17,7 @@ function AttendanceForm({ userId, onMarked }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>Status:</label>
+      <label>Status1:</label>
       <select value={status} onChange={(e) => setStatus(e.target.value)}>
         <option value="Present">Present</option>
         <option value="Absent">Absent</option>
