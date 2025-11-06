@@ -18,23 +18,18 @@ pipeline {
         script {
           echo '🔍 Checking for changed client folders...'
 
-          // Ensure we have full history for diff comparison
-          sh """
-            git fetch --unshallow || true
-            git fetch origin main
-          """
+          // Ensure we have commit history
+          sh "git fetch --unshallow || true"
 
-          // Compare local HEAD with remote main to detect changed files
+          // Compare last two commits
           def changedFilesRaw = sh(
-            script: "git diff --name-only origin/main...HEAD || true",
+            script: "git diff --name-only HEAD~1 HEAD || true",
             returnStdout: true
           ).trim()
 
-          // Split lines safely
-          def changedFiles = changedFilesRaw ? changedFilesRaw.split("\\n") : []
+          def changedFiles = changedFilesRaw ? changedFilesRaw.split('\\n') : []
           echo "📄 Changed files: ${changedFiles}"
 
-          // Detect which clients changed
           def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
           def client2Changed = changedFiles.any { it.startsWith('Client-2/') }
 
@@ -42,7 +37,6 @@ pipeline {
             error("⚠️ No client folder changes detected. Skipping build.")
           }
 
-          // Save results to environment
           env.CLIENT1_CHANGED = client1Changed.toString()
           env.CLIENT2_CHANGED = client2Changed.toString()
 
@@ -52,9 +46,6 @@ pipeline {
       }
     }
 
-    // ===========================
-    // Build & Deploy Client-1
-    // ===========================
     stage('Build & Deploy Client-1') {
       when { expression { env.CLIENT1_CHANGED == 'true' } }
       steps {
@@ -69,9 +60,6 @@ pipeline {
       }
     }
 
-    // ===========================
-    // Build & Deploy Client-2
-    // ===========================
     stage('Build & Deploy Client-2') {
       when { expression { env.CLIENT2_CHANGED == 'true' } }
       steps {
