@@ -18,18 +18,19 @@ pipeline {
         script {
           echo '🔍 Checking for changed client folders...'
 
-          // Ensure we have commit history
+          // Ensure we have at least 2 commits for comparison
           sh "git fetch --unshallow || true"
 
-          // Compare last two commits
+          // Compare last two commits to detect changes
           def changedFilesRaw = sh(
             script: "git diff --name-only HEAD~1 HEAD || true",
             returnStdout: true
           ).trim()
 
-          def changedFiles = changedFilesRaw ? changedFilesRaw.split('\\n') : []
+          def changedFiles = changedFilesRaw ? changedFilesRaw.split("\\n") : []
           echo "📄 Changed files: ${changedFiles}"
 
+          // Detect changed clients
           def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
           def client2Changed = changedFiles.any { it.startsWith('Client-2/') }
 
@@ -37,39 +38,40 @@ pipeline {
             error("⚠️ No client folder changes detected. Skipping build.")
           }
 
-          env.CLIENT1_CHANGED = client1Changed.toString()
-          env.CLIENT2_CHANGED = client2Changed.toString()
+          // Save results to pipeline variables (not env)
+          currentBuild.description = "Client-1: ${client1Changed}, Client-2: ${client2Changed}"
 
-          echo "✅ Client-1 changed: ${client1Changed}"
-          echo "✅ Client-2 changed: ${client2Changed}"
-        }
-      }
-    }
+          // Store booleans in local map for later
+          def clientsToBuild = [:]
 
-    stage('Build & Deploy Client-1') {
-      when { expression { env.CLIENT1_CHANGED == 'true' } }
-      steps {
-        script {
-          echo "🔧 Building Client-1..."
-          sh "docker-compose -f docker-compose-client1.yml build"
+          if (client1Changed) {
+            clientsToBuild['Client-1'] = {
+              stage('Build & Deploy Client-1') {
+                echo "🔧 Building Client-1..."
+                sh "docker-compose -f docker-compose-client1.yml build"
 
-          echo "🚀 Deploying Client-1..."
-          sh "docker-compose -f docker-compose-client1.yml down"
-          sh "docker-compose -f docker-compose-client1.yml up -d"
-        }
-      }
-    }
+                echo "🚀 Deploying Client-1..."
+                sh "docker-compose -f docker-compose-client1.yml down"
+                sh "docker-compose -f docker-compose-client1.yml up -d"
+              }
+            }
+          }
 
-    stage('Build & Deploy Client-2') {
-      when { expression { env.CLIENT2_CHANGED == 'true' } }
-      steps {
-        script {
-          echo "🔧 Building Client-2..."
-          sh "docker-compose -f docker-compose-client2.yml build"
+          if (client2Changed) {
+            clientsToBuild['Client-2'] = {
+              stage('Build & Deploy Client-2') {
+                echo "🔧 Building Client-2..."
+                sh "docker-compose -f docker-compose-client2.yml build"
 
-          echo "🚀 Deploying Client-2..."
-          sh "docker-compose -f docker-compose-client2.yml down"
-          sh "docker-compose -f docker-compose-client2.yml up -d"
+                echo "🚀 Deploying Client-2..."
+                sh "docker-compose -f docker-compose-client2.yml down"
+                sh "docker-compose -f docker-compose-client2.yml up -d"
+              }
+            }
+          }
+
+          // Run both builds in parallel if needed
+          parallel clientsToBuild
         }
       }
     }
