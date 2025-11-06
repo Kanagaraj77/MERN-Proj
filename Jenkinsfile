@@ -13,76 +13,84 @@ pipeline {
       }
     }
 
-    stage('Detect Changed Clients') {
+    stage('Detect Changed Client') {
       steps {
         script {
-          echo '🔍 Checking for changed client folders...'
+          // Get changed files
+          def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
+          echo "🔍 Changed files: ${changedFiles}"
 
-          // Ensure we have at least 2 commits for comparison
-          sh "git fetch --unshallow || true"
+          // Reset client var
+          env.CLIENT = ""
 
-          // Compare last two commits to detect changes
-          def changedFilesRaw = sh(
-            script: "git diff --name-only HEAD~1 HEAD || true",
-            returnStdout: true
-          ).trim()
-
-          def changedFiles = changedFilesRaw ? changedFilesRaw.split("\\n") : []
-          echo "📄 Changed files: ${changedFiles}"
-
-          // Detect changed clients
           def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
           def client2Changed = changedFiles.any { it.startsWith('Client-2/') }
 
-          if (!client1Changed && !client2Changed) {
+          if (client1Changed && !client2Changed) {
+            env.CLIENT = "Client-1"
+          } else if (client2Changed && !client1Changed) {
+            env.CLIENT = "Client-2"
+          } else if (client1Changed && client2Changed) {
+            error("❌ Both Client-1 and Client-2 changed in the same commit. Please deploy separately.")
+          } else {
             error("⚠️ No client folder changes detected. Skipping build.")
           }
 
-          // Save results to pipeline variables (not env)
-          currentBuild.description = "Client-1: ${client1Changed}, Client-2: ${client2Changed}"
-
-          // Store booleans in local map for later
-          def clientsToBuild = [:]
-
-          if (client1Changed) {
-            clientsToBuild['Client-1'] = {
-              stage('Build & Deploy Client-1') {
-                echo "🔧 Building Client-1..."
-                sh "docker-compose -f docker-compose-client1.yml build"
-
-                echo "🚀 Deploying Client-1..."
-                sh "docker-compose -f docker-compose-client1.yml down"
-                sh "docker-compose -f docker-compose-client1.yml up -d"
-              }
-            }
-          }
-
-          if (client2Changed) {
-            clientsToBuild['Client-2'] = {
-              stage('Build & Deploy Client-2') {
-                echo "🔧 Building Client-2..."
-                sh "docker-compose -f docker-compose-client2.yml build"
-
-                echo "🚀 Deploying Client-2..."
-                sh "docker-compose -f docker-compose-client2.yml down"
-                sh "docker-compose -f docker-compose-client2.yml up -d"
-              }
-            }
-          }
-
-          // Run both builds in parallel if needed
-          parallel clientsToBuild
+          echo "✅ Detected change in ${env.CLIENT}"
         }
+      }
+    }
+
+    stage('Select Compose File') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        script {
+          if (env.CLIENT == 'Client-1') {
+            env.COMPOSE_FILE = 'docker-compose-client1.yml'
+          } else if (env.CLIENT == 'Client-2') {
+            env.COMPOSE_FILE = 'docker-compose-client2.yml'
+          } else {
+            error("❌ Invalid CLIENT value: '${env.CLIENT}' — must be 'Client-1' or 'Client-2'")
+          }
+
+          echo "Using compose file: ${env.COMPOSE_FILE}"
+        }
+      }
+    }
+
+    stage('Build') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        echo "🔧 Building ${env.CLIENT}..."
+        sh "docker-compose -f ${env.COMPOSE_FILE} build"
+      }
+    }
+
+    stage('Test') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        echo "🧪 Running tests for ${env.CLIENT}..."
+        // Add test commands if needed, e.g.:
+        // sh "docker-compose -f ${env.COMPOSE_FILE} run --rm backend npm test"
+      }
+    }
+
+    stage('Deploy') {
+      when { expression { env.CLIENT != "" } }
+      steps {
+        echo "🚀 Deploying ${env.CLIENT}..."
+        sh "docker-compose -f ${env.COMPOSE_FILE} down"
+        sh "docker-compose -f ${env.COMPOSE_FILE} up -d"
       }
     }
   }
 
   post {
     success {
-      echo "✅ Pipeline completed successfully!"
+      echo "✅ ${env.CLIENT} pipeline completed successfully!"
     }
     failure {
-      echo "❌ Pipeline failed. Please check the logs."
+      echo "❌ ${env.CLIENT} pipeline failed. Please check the logs."
     }
   }
 }
