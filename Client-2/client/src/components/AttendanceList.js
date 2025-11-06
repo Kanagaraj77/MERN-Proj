@@ -18,7 +18,7 @@ function AttendanceList({ userId, refreshTrigger }) {
 
   return (
     <div>
-      <h3>Attendance History</h3>
+      <h3>Attendance History Client-2</h3>
       <ul>
         {records.map(record => (
           <li key={record._id}>
