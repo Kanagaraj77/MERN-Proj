@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        echo '📦 Cloning repository...'
+        echo 'Cloning repository...'
         git branch: 'main', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
@@ -18,7 +18,7 @@ pipeline {
         script {
           // Get changed files
           def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
-          echo "🔍 Changed files: ${changedFiles}"
+          echo "Changed files: ${changedFiles}"
 
           // Reset client var
           env.CLIENT = ""
@@ -31,12 +31,12 @@ pipeline {
           } else if (client2Changed && !client1Changed) {
             env.CLIENT = "Client-2"
           } else if (client1Changed && client2Changed) {
-            error("❌ Both Client-1 and Client-2 changed in the same commit. Please deploy separately.")
+            error("Both Client-1 and Client-2 changed in the same commit. Please deploy separately.")
           } else {
-            error("⚠️ No client folder changes detected. Skipping build.")
+            error("No client folder changes detected. Skipping build.")
           }
 
-          echo "✅ Detected change in ${env.CLIENT}"
+          echo "Detected change in ${env.CLIENT}"
         }
       }
     }
@@ -50,7 +50,7 @@ pipeline {
           } else if (env.CLIENT == 'Client-2') {
             env.COMPOSE_FILE = 'docker-compose-client2.yml'
           } else {
-            error("❌ Invalid CLIENT value: '${env.CLIENT}' — must be 'Client-1' or 'Client-2'")
+            error("Invalid CLIENT value: '${env.CLIENT}' — must be 'Client-1' or 'Client-2'")
           }
 
           echo "Using compose file: ${env.COMPOSE_FILE}"
@@ -61,7 +61,7 @@ pipeline {
     stage('Build') {
       when { expression { env.CLIENT != "" } }
       steps {
-        echo "🔧 Building ${env.CLIENT}..."
+        echo "Building ${env.CLIENT}..."
         sh "docker-compose -f ${env.COMPOSE_FILE} build"
       }
     }
@@ -69,7 +69,7 @@ pipeline {
     stage('Test') {
       when { expression { env.CLIENT != "" } }
       steps {
-        echo "🧪 Running tests for ${env.CLIENT}..."
+        echo "Running tests for ${env.CLIENT}..."
         // Add test commands if needed, e.g.:
         // sh "docker-compose -f ${env.COMPOSE_FILE} run --rm backend npm test"
       }
@@ -78,7 +78,7 @@ pipeline {
     stage('Deploy') {
       when { expression { env.CLIENT != "" } }
       steps {
-        echo "🚀 Deploying ${env.CLIENT}..."
+        echo "Deploying ${env.CLIENT}..."
         sh "docker-compose -f ${env.COMPOSE_FILE} down"
         sh "docker-compose -f ${env.COMPOSE_FILE} up -d"
       }
@@ -87,10 +87,10 @@ pipeline {
 
   post {
     success {
-      echo "✅ ${env.CLIENT} pipeline completed successfully!"
+      echo "${env.CLIENT} pipeline completed successfully!"
     }
     failure {
-      echo "❌ ${env.CLIENT} pipeline failed. Please check the logs."
+      echo "${env.CLIENT} pipeline failed. Please check the logs."
     }
   }
 }
