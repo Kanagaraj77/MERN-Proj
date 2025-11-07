@@ -35,7 +35,7 @@ services:
       dockerfile: DockerFile
     container_name: frontend_client1
     ports:
-      - "3001:3000"
+      - "3000:3000"
     depends_on:
       - backend_client1
     networks:
@@ -43,3 +43,4 @@ services:
 
 volumes:
   mongo-data-client1:
+
