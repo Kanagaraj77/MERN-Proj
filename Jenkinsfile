@@ -37,6 +37,7 @@ pipeline {
           }
 
           echo "Detected change in ${env.CLIENT}"
+          
         }
       }
     }
