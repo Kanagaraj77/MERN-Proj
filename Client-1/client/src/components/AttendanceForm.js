@@ -22,7 +22,7 @@ function AttendanceForm({ userId, onMarked }) {
         <option value="Present">Present</option>
         <option value="Absent">Absent</option>
       </select>
-      <button type="submit">Mark Attendance Client-1</button>
+      <button type="submit">Mark Attendance Client- 1</button>
     </form>
   );
 }
