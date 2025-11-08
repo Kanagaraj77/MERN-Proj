@@ -80,7 +80,7 @@ pipeline {
       steps {
         echo " Deploying ${env.CLIENT}..."
         sh "docker-compose -f ${env.COMPOSE_FILE} down"
-        sh "docker-compose -f ${env.COMPOSE_FILE} up -d"
+        sh "docker-compose -f ${env.COMPOSE_FILE}  up -d"
       }
     }
   }
