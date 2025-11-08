@@ -37,7 +37,6 @@ pipeline {
           }
 
           echo "Detected change in ${env.CLIENT}"
-          
         }
       }
     }
@@ -62,7 +61,7 @@ pipeline {
     stage('Build') {
       when { expression { env.CLIENT != "" } }
       steps {
-        echo "Building ${env.CLIENT}..."
+        echo "🔧 Building ${env.CLIENT}..."
         sh "docker-compose -f ${env.COMPOSE_FILE} build"
       }
     }
@@ -70,7 +69,7 @@ pipeline {
     stage('Test') {
       when { expression { env.CLIENT != "" } }
       steps {
-        echo "Running tests for ${env.CLIENT}..."
+        echo " Running tests for ${env.CLIENT}..."
         // Add test commands if needed, e.g.:
         // sh "docker-compose -f ${env.COMPOSE_FILE} run --rm backend npm test"
       }
@@ -79,7 +78,7 @@ pipeline {
     stage('Deploy') {
       when { expression { env.CLIENT != "" } }
       steps {
-        echo "Deploying ${env.CLIENT}..."
+        echo " Deploying ${env.CLIENT}..."
         sh "docker-compose -f ${env.COMPOSE_FILE} down"
         sh "docker-compose -f ${env.COMPOSE_FILE} up -d"
       }
@@ -88,10 +87,10 @@ pipeline {
 
   post {
     success {
-      echo "${env.CLIENT} pipeline completed successfully!"
+      echo " ${env.CLIENT} pipeline completed successfully!"
     }
     failure {
-      echo "${env.CLIENT} pipeline failed. Please check the logs."
+      echo " ${env.CLIENT} pipeline failed. Please check the logs."
     }
   }
 }
