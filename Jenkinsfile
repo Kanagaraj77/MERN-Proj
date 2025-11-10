@@ -10,7 +10,7 @@ pipeline {
     stage('Checkout') {
       steps {
         echo '🔍 Cloning repository...'
-        git branch: 'main', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
+        git branch: 'qa', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
 
