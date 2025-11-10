@@ -15,7 +15,7 @@ pipeline {
       }
     }
 
-    stage('Build Docker Images - Client 1') {
+    stage('Build & Push Client-1') {
       steps {
         echo "🔧 Building Docker images for Client-1..."
         sh "docker build -t client1-frontend ./Client-1/client"
@@ -27,7 +27,7 @@ pipeline {
       }
     }
 
-    stage('Build Docker Images - Client 2') {
+    stage('Build & Push Client-2') {
       steps {
         echo "🔧 Building Docker images for Client-2..."
         sh "docker build -t client2-frontend ./Client-2/client"
@@ -46,14 +46,14 @@ pipeline {
       }
     }
 
-    stage('Deploy to Kubernetes - Client 1') {
+    stage('Deploy to Kubernetes - Client-1') {
       steps {
         echo "🚀 Deploying Client-1 to Kubernetes..."
         sh "kubectl apply -f K8s-Client-1/"
       }
     }
 
-    stage('Deploy to Kubernetes - Client 2') {
+    stage('Deploy to Kubernetes - Client-2') {
       steps {
         echo "🚀 Deploying Client-2 to Kubernetes..."
         sh "kubectl apply -f K8s-Client-2/"
@@ -63,10 +63,10 @@ pipeline {
 
   post {
     success {
-      echo "✅ Pipeline completed successfully for both clients!"
+      echo "✅ Pipeline completed successfully for both Client-1 and Client-2!"
     }
     failure {
-      echo "❌ Pipeline failed."
+      echo "❌ Pipeline failed. Check logs for details."
     }
   }
 }
