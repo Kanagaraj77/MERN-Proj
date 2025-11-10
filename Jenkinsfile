@@ -34,8 +34,9 @@ pipeline {
       steps {
         echo "🔧 Building Docker images for Client-2..."
 
-        sh "docker build -t client2-frontend -f Client-2/client/Dockerfile Client-2/client"
-        sh "docker build -t client2-backend -f Client-2/server/Dockerfile Client-2/server"
+        sh "docker build -t client1-frontend -f ./Client-1/client/Dockerfile Client-1/client"
+        sh "docker build -t client1-backend -f ./Client-1/server/Dockerfile Client-1/server"
+
 
         sh "docker tag client2-frontend ${DOCKER_REGISTRY}/client2-frontend:latest"
         sh "docker tag client2-backend ${DOCKER_REGISTRY}/client2-backend:latest"
