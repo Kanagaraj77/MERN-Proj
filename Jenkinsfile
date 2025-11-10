@@ -25,7 +25,10 @@ pipeline {
       steps {
         script {
           def isFirstBuild = currentBuild.previousBuild == null
-          def changedFiles = isFirstBuild ? ['Client-1/'] : sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
+          def changedFiles = isFirstBuild
+            ? ['Client-1/'] // fallback to trigger build
+            : sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
+
           echo "Changed files: ${changedFiles}"
 
           def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
@@ -38,10 +41,11 @@ pipeline {
           } else if (client1Changed && client2Changed) {
             error("❌ Both Client-1 and Client-2 changed. Please deploy separately.")
           } else {
-            error("❌ No client folder changes detected. Skipping build.")
+            echo "⚠️ No client folder changes detected. Defaulting to Client-1 for build."
+            env.CLIENT = "Client-1"
           }
 
-          echo "✅ Detected change in ${env.CLIENT}"
+          echo "✅ Detected or defaulted to ${env.CLIENT}"
         }
       }
     }
@@ -103,8 +107,7 @@ pipeline {
       echo "✅ ${env.CLIENT} pipeline completed successfully!"
     }
     failure {
-      echo "❌ ${env.CLIENT} pipeline failed. Attempting rollback..."
-      sh "kubectl rollout undo deployment/${env.CLIENT_NAME}-backend || true"
+      echo "❌ ${env.CLIENT} pipeline failed."
     }
   }
 }
