@@ -18,8 +18,14 @@ pipeline {
     stage('Build & Push Client-1') {
       steps {
         echo "🔧 Building Docker images for Client-1..."
-        sh "docker build -t client1-frontend ./Client-1/client"
-        sh "docker build -t client1-backend ./Client-1/server"
+
+        dir('Client-1/client') {
+          sh "docker build -t client1-frontend ."
+        }
+        dir('Client-1/server') {
+          sh "docker build -t client1-backend ."
+        }
+
         sh "docker tag client1-frontend ${DOCKER_REGISTRY}/client1-frontend:latest"
         sh "docker tag client1-backend ${DOCKER_REGISTRY}/client1-backend:latest"
         sh "docker push ${DOCKER_REGISTRY}/client1-frontend:latest"
@@ -30,8 +36,14 @@ pipeline {
     stage('Build & Push Client-2') {
       steps {
         echo "🔧 Building Docker images for Client-2..."
-        sh "docker build -t client2-frontend ./Client-2/client"
-        sh "docker build -t client2-backend ./Client-2/server"
+
+        dir('Client-2/client') {
+          sh "docker build -t client2-frontend ."
+        }
+        dir('Client-2/server') {
+          sh "docker build -t client2-backend ."
+        }
+
         sh "docker tag client2-frontend ${DOCKER_REGISTRY}/client2-frontend:latest"
         sh "docker tag client2-backend ${DOCKER_REGISTRY}/client2-backend:latest"
         sh "docker push ${DOCKER_REGISTRY}/client2-frontend:latest"
