@@ -4,6 +4,13 @@ pipeline {
   environment {
     DOCKER_HOST = 'unix:///var/run/docker.sock'
     DOCKER_REGISTRY = 'kanagaraj1998'
+    KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    CLIENT = ''
+    FRONTEND_PATH = ''
+    BACKEND_PATH = ''
+    COMPOSE_FILE = ''
+    K8S_PATH = ''
+    CLIENT_NAME = ''
   }
 
   stages {
@@ -17,10 +24,10 @@ pipeline {
     stage('Detect Changed Client') {
       steps {
         script {
-          def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
+          def isFirstBuild = currentBuild.previousBuild == null
+          def changedFiles = isFirstBuild ? ['Client-1/'] : sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
           echo "Changed files: ${changedFiles}"
 
-          env.CLIENT = ""
           def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
           def client2Changed = changedFiles.any { it.startsWith('Client-2/') }
 
