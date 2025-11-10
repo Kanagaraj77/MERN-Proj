@@ -19,10 +19,10 @@ pipeline {
       steps {
         echo "🔧 Building Docker images for Client-1..."
 
-        dir('Client-1/client') {
+        dir('Client-1/client/Dockerfile') {
           sh "docker build -t client1-frontend ."
         }
-        dir('Client-1/server') {
+        dir('Client-1/server/Dockerfile') {
           sh "docker build -t client1-backend ."
         }
 
