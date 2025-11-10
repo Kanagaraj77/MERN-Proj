@@ -5,12 +5,6 @@ pipeline {
     DOCKER_HOST = 'unix:///var/run/docker.sock'
     DOCKER_REGISTRY = 'kanagaraj1998'
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
-    CLIENT = ''
-    FRONTEND_PATH = ''
-    BACKEND_PATH = ''
-    COMPOSE_FILE = ''
-    K8S_PATH = ''
-    CLIENT_NAME = ''
   }
 
   stages {
@@ -21,93 +15,58 @@ pipeline {
       }
     }
 
-    stage('Detect Changed Client') {
+    stage('Build Docker Images - Client 1') {
       steps {
-        script {
-          def isFirstBuild = currentBuild.previousBuild == null
-          def changedFiles = isFirstBuild
-            ? ['Client-1/'] // fallback to trigger build
-            : sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
-
-          echo "Changed files: ${changedFiles}"
-
-          def client1Changed = changedFiles.any { it.startsWith('Client-1/') }
-          def client2Changed = changedFiles.any { it.startsWith('Client-2/') }
-
-          if (client1Changed && !client2Changed) {
-            env.CLIENT = "Client-1"
-          } else if (client2Changed && !client1Changed) {
-            env.CLIENT = "Client-2"
-          } else if (client1Changed && client2Changed) {
-            error("❌ Both Client-1 and Client-2 changed. Please deploy separately.")
-          } else {
-            echo "⚠️ No client folder changes detected. Defaulting to Client-1 for build."
-            env.CLIENT = "Client-1"
-          }
-
-          echo "✅ Detected or defaulted to ${env.CLIENT}"
-        }
+        echo "🔧 Building Docker images for Client-1..."
+        sh "docker build -t client1-frontend ./Client-1/client"
+        sh "docker build -t client1-backend ./Client-1/server"
+        sh "docker tag client1-frontend ${DOCKER_REGISTRY}/client1-frontend:latest"
+        sh "docker tag client1-backend ${DOCKER_REGISTRY}/client1-backend:latest"
+        sh "docker push ${DOCKER_REGISTRY}/client1-frontend:latest"
+        sh "docker push ${DOCKER_REGISTRY}/client1-backend:latest"
       }
     }
 
-    stage('Set Paths and Compose File') {
-      when { expression { env.CLIENT != "" } }
+    stage('Build Docker Images - Client 2') {
       steps {
-        script {
-          if (env.CLIENT == 'Client-1') {
-            env.FRONTEND_PATH = './Client-1/client'
-            env.BACKEND_PATH = './Client-1/server'
-            env.COMPOSE_FILE = 'docker-compose-client1.yml'
-            env.K8S_PATH = 'K8s-Client-1'
-            env.CLIENT_NAME = 'client1'
-          } else if (env.CLIENT == 'Client-2') {
-            env.FRONTEND_PATH = './Client-2/client'
-            env.BACKEND_PATH = './Client-2/server'
-            env.COMPOSE_FILE = 'docker-compose-client2.yml'
-            env.K8S_PATH = 'K8s-Client-2'
-            env.CLIENT_NAME = 'client2'
-          } else {
-            error("Invalid CLIENT value: '${env.CLIENT}'")
-          }
-
-          echo "📦 Using compose file: ${env.COMPOSE_FILE}"
-        }
-      }
-    }
-
-    stage('Build Docker Images') {
-      steps {
-        echo "🔧 Building Docker images for ${env.CLIENT}..."
-        sh "docker build -t ${env.CLIENT_NAME}-frontend ${env.FRONTEND_PATH}"
-        sh "docker build -t ${env.CLIENT_NAME}-backend ${env.BACKEND_PATH}"
-        sh "docker tag ${env.CLIENT_NAME}-frontend ${DOCKER_REGISTRY}/${env.CLIENT_NAME}-frontend:latest"
-        sh "docker tag ${env.CLIENT_NAME}-backend ${DOCKER_REGISTRY}/${env.CLIENT_NAME}-backend:latest"
-        sh "docker push ${DOCKER_REGISTRY}/${env.CLIENT_NAME}-frontend:latest"
-        sh "docker push ${DOCKER_REGISTRY}/${env.CLIENT_NAME}-backend:latest"
+        echo "🔧 Building Docker images for Client-2..."
+        sh "docker build -t client2-frontend ./Client-2/client"
+        sh "docker build -t client2-backend ./Client-2/server"
+        sh "docker tag client2-frontend ${DOCKER_REGISTRY}/client2-frontend:latest"
+        sh "docker tag client2-backend ${DOCKER_REGISTRY}/client2-backend:latest"
+        sh "docker push ${DOCKER_REGISTRY}/client2-frontend:latest"
+        sh "docker push ${DOCKER_REGISTRY}/client2-backend:latest"
       }
     }
 
     stage('Test') {
       steps {
-        echo "🧪 Running tests for ${env.CLIENT}..."
+        echo "🧪 Running tests for both clients..."
         // Add test commands here if needed
       }
     }
 
-    stage('Deploy to Kubernetes') {
+    stage('Deploy to Kubernetes - Client 1') {
       steps {
-        echo "🚀 Deploying ${env.CLIENT} to Kubernetes..."
-        sh "kubectl apply -f ${env.K8S_PATH}/"
+        echo "🚀 Deploying Client-1 to Kubernetes..."
+        sh "kubectl apply -f K8s-Client-1/"
+      }
+    }
+
+    stage('Deploy to Kubernetes - Client 2') {
+      steps {
+        echo "🚀 Deploying Client-2 to Kubernetes..."
+        sh "kubectl apply -f K8s-Client-2/"
       }
     }
   }
 
   post {
     success {
-      echo "✅ ${env.CLIENT} pipeline completed successfully!"
+      echo "✅ Pipeline completed successfully for both clients!"
     }
     failure {
-      echo "❌ ${env.CLIENT} pipeline failed."
+      echo "❌ Pipeline failed."
     }
   }
 }
