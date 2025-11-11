@@ -55,12 +55,6 @@ pipeline {
 
             docker push ${REGISTRY_REPO}:client1-frontend-${TAG}
             docker push ${REGISTRY_REPO}:client1-backend-${TAG}
-
-            docker tag client1-frontend:latest ${REGISTRY_REPO}:client1-frontend-latest
-            docker tag client1-backend:latest ${REGISTRY_REPO}:client1-backend-latest
-
-            docker push ${REGISTRY_REPO}:client1-frontend-latest
-            docker push ${REGISTRY_REPO}:client1-backend-latest
           '''
         }
       }
