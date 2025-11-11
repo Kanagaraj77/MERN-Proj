@@ -3,8 +3,9 @@ pipeline {
 
   environment {
     REGISTRY_REPO = 'kanagaraj1998/kube-jenkins'
-    KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    KUBECONFIG = '/var/lib/jenkins/.kube/config'   // Ensure this points to your Minikube config
     TAG = "${env.BUILD_NUMBER}"
+    DEPLOYMENT_PATH = './k8s'
   }
 
   stages {
@@ -16,78 +17,74 @@ pipeline {
       }
     }
 
-    stage('Docker Login') {
+    stage('Set up Minikube Docker Environment') {
       steps {
-        echo '🔐 Logging into Docker Hub...'
-        withCredentials([usernamePassword(
-          credentialsId: 'docker-hub-creds',
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS'
-        )]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            echo "✅ Docker login successful"
-          '''
-        }
+        echo '⚙️ Setting up Docker environment for Minikube...'
+        sh '''
+          eval $(minikube docker-env)
+          echo "✅ Docker environment set to Minikube"
+        '''
       }
     }
 
     stage('Build Docker Images for Client-1') {
       steps {
         script {
-          echo "🔧 Building Docker images for Client-1..."
-          
+          echo "🔧 Building Docker images for Client-1 inside Minikube Docker daemon..."
           sh '''
-            docker build -t client1-frontend:latest -f ./Client-1/client/DockerFile ./Client-1/client
-            docker build -t client1-backend:latest -f ./Client-1/server/DockerFile ./Client-1/server
+            docker build -t ${REGISTRY_REPO}:client1-frontend-${TAG} -f ./Client-1/client/DockerFile ./Client-1/client
+            docker build -t ${REGISTRY_REPO}:client1-backend-${TAG} -f ./Client-1/server/DockerFile ./Client-1/server
           '''
         }
       }
     }
 
-    stage('Tag & Push Images') {
+    stage('Deploy to Minikube Kubernetes Cluster') {
       steps {
         script {
-          echo "📦 Tagging and pushing Docker images..."
+          echo "🚀 Deploying updated images to Minikube..."
           
           sh '''
-            docker tag client1-frontend:latest ${REGISTRY_REPO}:client1-frontend-${TAG}
-            docker tag client1-backend:latest ${REGISTRY_REPO}:client1-backend-${TAG}
+            echo "🔁 Updating Kubernetes manifests with new image tags..."
 
-            docker push ${REGISTRY_REPO}:client1-frontend-${TAG}
-            docker push ${REGISTRY_REPO}:client1-backend-${TAG}
+            # Replace image placeholders dynamically
+            sed -i "s|kanagaraj1998/kube-jenkins:client1-frontend-latest|${REGISTRY_REPO}:client1-frontend-${TAG}|g" ${DEPLOYMENT_PATH}/client1-deployment.yaml
+            sed -i "s|kanagaraj1998/kube-jenkins:client1-backend-latest|${REGISTRY_REPO}:client1-backend-${TAG}|g" ${DEPLOYMENT_PATH}/client1-deployment.yaml
 
-            # Optional: also push as latest
-            docker tag client1-frontend:latest ${REGISTRY_REPO}:client1-frontend-latest
-            docker tag client1-backend:latest ${REGISTRY_REPO}:client1-backend-latest
-            docker push ${REGISTRY_REPO}:client1-frontend-latest
-            docker push ${REGISTRY_REPO}:client1-backend-latest
+            echo "📄 Applying updated Kubernetes manifests..."
+            kubectl apply -f ${DEPLOYMENT_PATH}/client1-deployment.yaml
+
+            echo "⏳ Waiting for rollouts..."
+            kubectl rollout status deployment/client1-frontend-deployment -n client1-namespace
+            kubectl rollout status deployment/client1-backend-deployment -n client1-namespace
+
+            echo "✅ Deployment successful on Minikube!"
           '''
         }
       }
     }
 
-    stage('Clean up') {
+    stage('Access Info') {
       steps {
-        echo '🧹 Cleaning up local Docker images...'
+        echo '🌐 Fetching Minikube service URL for frontend...'
         sh '''
-          docker image prune -f || true
-          docker logout
+          echo "Frontend Service URL:"
+          minikube service client1-frontend-service -n client1-namespace --url
         '''
       }
     }
 
-  } // end of stages
+  } // end stages
 
   post {
     success {
-      echo "✅ Pipeline completed successfully! Images pushed with tag ${TAG}"
+      echo "✅ Pipeline completed successfully! Images built and deployed to Minikube with tag ${TAG}"
     }
     failure {
       echo "❌ Pipeline failed. Check Jenkins logs for details."
     }
     always {
-      echo " Pipeline execution finished at: (date)"
+      echo "🕒 Pipeline finished at: $(date)"
     }
   }
 }
