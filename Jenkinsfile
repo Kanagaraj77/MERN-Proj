@@ -46,44 +46,29 @@ pipeline {
       }
     }
 
-    stage('Build & Push Client-2') {
-      steps {
-        echo "🔧 Building Docker images for Client-2..."
-
-        sh "docker build -t client2-frontend -f ./Client-2/client/DockerFile ./Client-2/client"
-        sh "docker build -t client2-backend -f ./Client-2/server/DockerFile ./Client-2/server"
-
-        sh "docker tag client2-frontend ${DOCKER_REGISTRY}:client2-frontend-${TAG}"
-        sh "docker tag client2-backend ${DOCKER_REGISTRY}:client2-backend-${TAG}"
-
-        sh "docker push ${DOCKER_REGISTRY}:client2-frontend-${TAG}"
-        sh "docker push ${DOCKER_REGISTRY}:client2-backend-${TAG}"
-      }
-    }
+  
 
     stage('Deploy to Kubernetes') {
       steps {
-        echo "🚀 Deploying Client-1 and Client-2 to Kubernetes..."
+        echo "🚀 Deploying Client-1  Kubernetes..."
 
         sh '''
           # Create namespaces if they don’t exist
           kubectl get ns client1-namespace || kubectl create ns client1-namespace
-          kubectl get ns client2-namespace || kubectl create ns client2-namespace
+      
 
           # Replace image placeholders in YAML files
           sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend-${TAG}|g" client-1-k8s.yaml
           sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend-${TAG}|g" client-1-k8s.yaml
 
-          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend-${TAG}|g" client-2-k8s.yaml
-          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend-${TAG}|g" client-2-k8s.yaml
 
           # Apply manifests
           kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
-          kubectl apply -f client-2-k8s.yaml --namespace=client2-namespace --validate=false
+        
 
           # Verify deployments
           kubectl get pods -n client1-namespace
-          kubectl get pods -n client2-namespace
+         
         '''
       }
     }
@@ -94,7 +79,7 @@ pipeline {
         sh '''
           minikube_ip=$(minikube ip)
           curl -f http://$minikube_ip:30001 || echo "⚠️ Client-1 frontend not reachable"
-          curl -f http://$minikube_ip:30002 || echo "⚠️ Client-2 frontend not reachable"
+      
         '''
       }
     }
