@@ -5,7 +5,7 @@ pipeline {
     REGISTRY_REPO = 'kanagaraj1998/kube-jenkins'
     KUBECONFIG = '/home/kanagu/.kube/config'
     TAG = "${env.BUILD_NUMBER}"
-    DEPLOYMENT_FILE = 'client-1-k8s.yaml'  // YAML in project root
+    DEPLOYMENT_FILE = 'client-1-k8s.yaml'  
   }
 
   stages {
@@ -94,7 +94,7 @@ pipeline {
       }
     }
 
-  } // end stages
+  } 
 
   post {
     success {
@@ -108,3 +108,4 @@ pipeline {
     }
   }
 }
+
