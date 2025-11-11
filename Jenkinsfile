@@ -16,20 +16,16 @@ pipeline {
       }
     }
 
-    stage('Docker Login') {
-      steps {
-        echo '🔐 Logging into Docker Hub...'
-        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            if [ $? -ne 0 ]; then
-              echo "❌ Docker login failed. Check credentials or network."
-              exit 1
-            fi
-          '''
-        }
-      }
-    }
+      stage('Docker Login') {
+stage('Docker Login Test') {
+  steps {
+    sh '''
+      docker logout || true
+      echo "dckr_pat_Wk2UNjYO69iHEp7rm17018NMq-8" | docker login -u "kanagaraj1998" --password-stdin
+      docker info
+    '''
+  }
+}
 
     stage('Build & Push Client-1') {
       steps {
@@ -73,3 +69,4 @@ pipeline {
     }
   }
 } // ← closes the pipeline block
+
