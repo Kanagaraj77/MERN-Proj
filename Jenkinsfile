@@ -71,19 +71,22 @@ pipeline {
         '''
 
         // Replace image placeholders in YAML files
-        sh '''
-        sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend|g" Client-1/client-1-k8s.yaml
-        sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend|g" Client-1/client-1-k8s.yaml
+       sh '''
+      sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend|g" client-1-k8s.yaml
+      sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend|g" client-1-k8s.yaml
 
-        sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend|g" Client-2/client-2-k8s.yaml
-        sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend|g" Client-2/client-2-k8s.yaml
+      sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend|g" client-2-k8s.yaml
+      sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend|g" client-2-k8s.yaml
+      '''
+
         '''
 
         // Apply manifests
         sh '''
-        kubectl apply -f Client-1/client-1-k8s.yaml --namespace=client1-namespace --validate=false
-        kubectl apply -f Client-2/client-2-k8s.yaml --namespace=client2-namespace --validate=false
-        '''
+        kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
+        kubectl apply -f client-2-k8s.yaml --namespace=client2-namespace --validate=false
+      '''
+
 
         // Verify deployments
         sh '''
