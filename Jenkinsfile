@@ -55,3 +55,4 @@ stage('Docker Login Test') {
     }
   }
 } // ← closes the pipeline block
+
