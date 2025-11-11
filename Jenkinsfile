@@ -85,7 +85,7 @@ pipeline {
         sh '''
         kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
         kubectl apply -f client-2-k8s.yaml --namespace=client2-namespace --validate=false
-      '''
+        '''
 
 
         // Verify deployments
