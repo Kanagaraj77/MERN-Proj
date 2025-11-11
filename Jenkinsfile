@@ -39,8 +39,8 @@ pipeline {
             echo "🔁 Updating Kubernetes manifests with new image tags..."
 
             # Replace image placeholders dynamically
-            sed -i "s|kanagaraj1998/kube-jenkins:client1-frontend-latest|${REGISTRY_REPO}:client1-frontend-${TAG}|g" ${DEPLOYMENT_PATH}/client1-deployment.yaml
-            sed -i "s|kanagaraj1998/kube-jenkins:client1-backend-latest|${REGISTRY_REPO}:client1-backend-${TAG}|g" ${DEPLOYMENT_PATH}/client1-deployment.yaml
+            sed -i "s|kanagaraj1998/kube-jenkins:client1-frontend-latest|${REGISTRY_REPO}:client1-frontend-${TAG}|g" ${DEPLOYMENT_PATH}/client-1-k8s.yaml
+            sed -i "s|kanagaraj1998/kube-jenkins:client1-backend-latest|${REGISTRY_REPO}:client1-backend-${TAG}|g" ${DEPLOYMENT_PATH}/client-1-k8s.yaml
 
             echo "📄 Applying updated Kubernetes manifests..."
             kubectl apply -f ${DEPLOYMENT_PATH}/client-1-k8s.yaml
