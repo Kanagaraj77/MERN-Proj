@@ -73,18 +73,6 @@ pipeline {
       }
     }
 
-    stage('Health Check') {
-      steps {
-        echo "🔍 Verifying frontend availability..."
-        sh '''
-          minikube_ip=$(minikube ip)
-          curl -f http://$minikube_ip:30001 || echo "⚠️ Client-1 frontend not reachable"
-      
-        '''
-      }
-    }
-  }
-
   post {
     success {
       echo "✅ Full pipeline completed successfully!"
