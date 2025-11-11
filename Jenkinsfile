@@ -43,7 +43,7 @@ pipeline {
             sed -i "s|kanagaraj1998/kube-jenkins:client1-backend-latest|${REGISTRY_REPO}:client1-backend-${TAG}|g" ${DEPLOYMENT_PATH}/client1-deployment.yaml
 
             echo "📄 Applying updated Kubernetes manifests..."
-            kubectl apply -f ${DEPLOYMENT_PATH}/client1-deployment.yaml
+            kubectl apply -f ${DEPLOYMENT_PATH}/client-1-k8s.yaml
 
             echo "⏳ Waiting for rollouts..."
             kubectl rollout status deployment/client1-frontend-deployment -n client1-namespace
