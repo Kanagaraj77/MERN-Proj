@@ -5,7 +5,7 @@ metadata:
   name: client1-namespace
 
 ---
-# 🗄️ Backend Deployment (Express)
+#Backend Deployment (Express)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,7 +14,7 @@ metadata:
   labels:
     app: client1-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: client1-backend
@@ -61,7 +61,7 @@ spec:
   type: ClusterIP
 
 ---
-# 💻 Frontend Deployment (React)
+# Frontend Deployment (React)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
