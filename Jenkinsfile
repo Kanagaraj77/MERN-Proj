@@ -26,6 +26,7 @@ stage('Docker Login Test') {
     '''
   }
 }
+    }
 
 
     stage('Build & Push Client-1') {
