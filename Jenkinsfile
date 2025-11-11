@@ -64,34 +64,25 @@ pipeline {
       steps {
         echo "🚀 Deploying Client-1 and Client-2 to Kubernetes..."
 
-        // Create namespaces if they don’t exist
         sh '''
-        kubectl get ns client1-namespace || kubectl create ns client1-namespace
-        kubectl get ns client2-namespace || kubectl create ns client2-namespace
-        '''
+          # Create namespaces if they don’t exist
+          kubectl get ns client1-namespace || kubectl create ns client1-namespace
+          kubectl get ns client2-namespace || kubectl create ns client2-namespace
 
-        // Replace image placeholders in YAML files
-       sh '''
-      sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend|g" client-1-k8s.yaml
-      sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend|g" client-1-k8s.yaml
+          # Replace image placeholders in YAML files
+          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend|g" client-1-k8s.yaml
+          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend|g" client-1-k8s.yaml
 
-      sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend|g" client-2-k8s.yaml
-      sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend|g" client-2-k8s.yaml
-      '''
+          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend|g" client-2-k8s.yaml
+          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend|g" client-2-k8s.yaml
 
-        '''
+          # Apply manifests
+          kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
+          kubectl apply -f client-2-k8s.yaml --namespace=client2-namespace --validate=false
 
-        // Apply manifests
-        sh '''
-        kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
-        kubectl apply -f client-2-k8s.yaml --namespace=client2-namespace --validate=false
-        '''
-
-
-        // Verify deployments
-        sh '''
-        kubectl get pods -n client1-namespace
-        kubectl get pods -n client2-namespace
+          # Verify deployments
+          kubectl get pods -n client1-namespace
+          kubectl get pods -n client2-namespace
         '''
       }
     }
