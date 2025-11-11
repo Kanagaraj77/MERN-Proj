@@ -74,26 +74,11 @@ pipeline {
             echo "Applying updated Kubernetes manifests..."
             kubectl apply -f ${DEPLOYMENT_FILE}
 
-            echo "Waiting for rollouts..."
-            kubectl rollout status deployment/client1-frontend-deployment -n client1-namespace
-            kubectl rollout status deployment/client1-backend-deployment -n client1-namespace
-
             echo "Deployment successful!"
           '''
         }
       }
     }
-
-    stage('Clean up') {
-      steps {
-        echo 'Cleaning up local Docker images...'
-        sh '''
-          docker image prune -f || true
-          docker logout
-        '''
-      }
-    }
-
   } 
 
   post {
