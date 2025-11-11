@@ -17,19 +17,16 @@ pipeline {
     }
 
     stage('Docker Login') {
-      steps {
-        echo '🔐 Logging into Docker Hub...'
-        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            if [ $? -ne 0 ]; then
-              echo "❌ Docker login failed. Check credentials or network."
-              exit 1
-            fi
-          '''
-        }
-      }
-    }
+stage('Docker Login Test') {
+  steps {
+    sh '''
+      docker logout || true
+      echo "dckr_pat_Wk2UNjYO69iHEp7rm17018NMq-8" | docker login -u "kanagaraj1998" --password-stdin
+      docker info
+    '''
+  }
+}
+
 
     stage('Build & Push Client-1') {
       steps {
@@ -46,22 +43,7 @@ pipeline {
       }
     }
 
-    stage('Deploy to Kubernetes') {
-      steps {
-        echo "🚀 Deploying Client-1 to Kubernetes..."
 
-        sh '''
-          kubectl get ns client1-namespace || kubectl create ns client1-namespace
-
-          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend-${TAG}|g" client-1-k8s.yaml
-          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend-${TAG}|g" client-1-k8s.yaml
-
-          kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
-
-          kubectl get pods -n client1-namespace
-        '''
-      }
-    }
   } // ← closes the stages block
 
   post {
