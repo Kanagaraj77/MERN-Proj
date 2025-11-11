@@ -2,58 +2,92 @@ pipeline {
   agent any
 
   environment {
-    DOCKER_REGISTRY = 'kanagaraj1998/kube-jenkins'
+    REGISTRY_REPO = 'kanagaraj1998/kube-jenkins'
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
-    TAG = "${env.BUILD_NUMBER}" // Auto-incremented tag per Jenkins build
+    TAG = "${env.BUILD_NUMBER}"
   }
 
   stages {
 
-    stage('Checkout Code') {
+    stage('Checkout Source Code') {
       steps {
-        echo '🔍 Cloning MERN-Proj repository...'
+        echo '🔍 Checking out MERN-Proj repository...'
         git branch: 'qa', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
       }
     }
 
     stage('Docker Login') {
-stage('Docker Login Test') {
-  steps {
-    sh '''
-      docker logout || true
-      echo "dckr_pat_Wk2UNjYO69iHEp7rm17018NMq-8" | docker login -u "kanagaraj1998" --password-stdin
-      docker info
-    '''
-  }
-}
-    }
-
-
-    stage('Build & Push Client-1') {
       steps {
-        echo "🔧 Building Docker images for Client-1..."
-
-        sh "docker build -t client1-frontend -f ./Client-1/client/DockerFile ./Client-1/client"
-        sh "docker build -t client1-backend -f ./Client-1/server/DockerFile ./Client-1/server"
-
-        sh "docker tag client1-frontend ${DOCKER_REGISTRY}:client1-frontend-${TAG}"
-        sh "docker tag client1-backend ${DOCKER_REGISTRY}:client1-backend-${TAG}"
-
-        sh "docker push ${DOCKER_REGISTRY}:client1-frontend-${TAG}"
-        sh "docker push ${DOCKER_REGISTRY}:client1-backend-${TAG}"
+        echo '🔐 Logging into Docker Hub...'
+        withCredentials([usernamePassword(
+          credentialsId: 'docker-hub-creds',
+          usernameVariable: 'DOCKER_USER',
+          passwordVariable: 'DOCKER_PASS'
+        )]) {
+          sh '''
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            echo "✅ Docker login successful"
+          '''
+        }
       }
     }
 
+    stage('Build Docker Images for Client-1') {
+      steps {
+        script {
+          echo "🔧 Building Docker images for Client-1..."
+          
+          sh '''
+            docker build -t client1-frontend:latest -f ./Client-1/client/DockerFile ./Client-1/client
+            docker build -t client1-backend:latest -f ./Client-1/server/DockerFile ./Client-1/server
+          '''
+        }
+      }
+    }
 
-  } // ← closes the stages block
+    stage('Tag & Push Images') {
+      steps {
+        script {
+          echo "📦 Tagging and pushing Docker images..."
+          
+          sh '''
+            docker tag client1-frontend:latest ${REGISTRY_REPO}:client1-frontend-${TAG}
+            docker tag client1-backend:latest ${REGISTRY_REPO}:client1-backend-${TAG}
+
+            docker push ${REGISTRY_REPO}:client1-frontend-${TAG}
+            docker push ${REGISTRY_REPO}:client1-backend-${TAG}
+
+            # Optional: also push as latest
+            docker tag client1-frontend:latest ${REGISTRY_REPO}:client1-frontend-latest
+            docker tag client1-backend:latest ${REGISTRY_REPO}:client1-backend-latest
+            docker push ${REGISTRY_REPO}:client1-frontend-latest
+            docker push ${REGISTRY_REPO}:client1-backend-latest
+          '''
+        }
+      }
+    }
+
+    stage('Clean up') {
+      steps {
+        echo '🧹 Cleaning up local Docker images...'
+        sh '''
+          docker image prune -f || true
+          docker logout
+        '''
+      }
+    }
+
+  } // end of stages
 
   post {
     success {
-      echo "✅ Full pipeline completed successfully!"
+      echo "✅ Pipeline completed successfully! Images pushed with tag ${TAG}"
     }
     failure {
       echo "❌ Pipeline failed. Check Jenkins logs for details."
     }
+    always {
+      echo "🏁 Pipeline execution finished at: $(date)"
+    }
   }
-} // ← closes the pipeline block
-
+}
