@@ -74,8 +74,8 @@ pipeline {
           sh '''
             echo "🔁 Updating Kubernetes manifests with new image tags..."
 
-            sed -i "s|kanagaraj1998/kube-jenkins:client1-frontend-latest|${REGISTRY_REPO}:client1-frontend-${TAG}|g" ${DEPLOYMENT_FILE}
-            sed -i "s|kanagaraj1998/kube-jenkins:client1-backend-latest|${REGISTRY_REPO}:client1-backend-${TAG}|g" ${DEPLOYMENT_FILE}
+            sed -i "s|kanagaraj1998/kube-jenkins:client1-frontend:latest|${REGISTRY_REPO}:client1-frontend-${TAG}|g" ${DEPLOYMENT_FILE}
+            sed -i "s|kanagaraj1998/kube-jenkins:client1-backend:latest|${REGISTRY_REPO}:client1-backend-${TAG}|g" ${DEPLOYMENT_FILE}
 
             echo "📄 Applying updated Kubernetes manifests..."
             kubectl apply -f ${DEPLOYMENT_FILE}
