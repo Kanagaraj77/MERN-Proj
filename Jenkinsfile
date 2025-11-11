@@ -46,32 +46,23 @@ pipeline {
       }
     }
 
-  
-
     stage('Deploy to Kubernetes') {
       steps {
-        echo "🚀 Deploying Client-1  Kubernetes..."
+        echo "🚀 Deploying Client-1 to Kubernetes..."
 
         sh '''
-          # Create namespaces if they don’t exist
           kubectl get ns client1-namespace || kubectl create ns client1-namespace
-      
 
-          # Replace image placeholders in YAML files
           sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend-${TAG}|g" client-1-k8s.yaml
           sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend-${TAG}|g" client-1-k8s.yaml
 
-
-          # Apply manifests
           kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
-        
 
-          # Verify deployments
           kubectl get pods -n client1-namespace
-         
         '''
       }
     }
+  } // ← closes the stages block
 
   post {
     success {
@@ -81,4 +72,4 @@ pipeline {
       echo "❌ Pipeline failed. Check Jenkins logs for details."
     }
   }
-}
+} // ← closes the pipeline block
