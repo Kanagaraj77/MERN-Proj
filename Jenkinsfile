@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     REGISTRY_REPO = 'kanagaraj1998/kube-jenkins'
-    KUBECONFIG = '/var/lib/jenkins/.kube/config'   // Jenkins service account kubeconfig
+    KUBECONFIG = '/home/kanagu/.kube/config'
     TAG = "${env.BUILD_NUMBER}"
     DEPLOYMENT_FILE = 'client-1-k8s.yaml'  // YAML in project root
   }
