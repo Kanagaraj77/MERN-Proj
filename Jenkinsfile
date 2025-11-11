@@ -87,7 +87,7 @@ pipeline {
       echo "❌ Pipeline failed. Check Jenkins logs for details."
     }
     always {
-      echo "🏁 Pipeline execution finished at: $(date)"
+      echo " Pipeline execution finished at: (date)"
     }
   }
 }
