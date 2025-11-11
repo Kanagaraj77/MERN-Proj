@@ -17,15 +17,6 @@ pipeline {
       }
     }
 
-    stage('Set up Minikube Docker Environment') {
-      steps {
-        echo '⚙️ Setting up Docker environment for Minikube...'
-        sh '''
-          eval $(minikube docker-env)
-          echo "✅ Docker environment set to Minikube"
-        '''
-      }
-    }
 
     stage('Build Docker Images for Client-1') {
       steps {
@@ -64,15 +55,6 @@ pipeline {
       }
     }
 
-    stage('Access Info') {
-      steps {
-        echo '🌐 Fetching Minikube service URL for frontend...'
-        sh '''
-          echo "Frontend Service URL:"
-          minikube service client1-frontend-service -n client1-namespace --url
-        '''
-      }
-    }
 
   } // end stages
 
