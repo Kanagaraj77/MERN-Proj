@@ -3,94 +3,34 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: client1-namespace
+
 ---
-# PersistentVolumeClaim for MongoDB data
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mongo-data-client1
-  namespace: client1-namespace
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi
----
-# MongoDB Deployment
+# 🗄️ Backend Deployment (Express)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongo-client1
+  name: client1-backend-deployment
   namespace: client1-namespace
   labels:
-    app: mongo-client1
+    app: client1-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mongo-client1
+      app: client1-backend
   template:
     metadata:
       labels:
-        app: mongo-client1
-    spec:
-      containers:
-        - name: mongo
-          image: mongo:6.0
-          ports:
-            - containerPort: 27017
-          volumeMounts:
-            - name: mongo-storage
-              mountPath: /data/db
-      volumes:
-        - name: mongo-storage
-          persistentVolumeClaim:
-            claimName: mongo-data-client1
----
-# MongoDB Service (ClusterIP)
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongo-client1
-  namespace: client1-namespace
-spec:
-  selector:
-    app: mongo-client1
-  ports:
-    - port: 27017
-      targetPort: 27020
-  type: ClusterIP
----
-# Backend Deployment (Express)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend-client1
-  namespace: client1-namespace
-  labels:
-    app: backend-client1
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: backend-client1
-  template:
-    metadata:
-      labels:
-        app: backend-client1
+        app: client1-backend
     spec:
       containers:
         - name: backend
-          # REPLACE this with your backend image pushed to registry:
-          # e.g. image: kanagaraj1998/client1-backend:latest
-          image: IMAGE_PLACEHOLDER_BACKEND
-          imagePullPolicy: IfNotPresent
+          image: kanagaraj1998/kube-jenkins:client1-backend-latest   # replaced dynamically in Jenkins
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:
             - name: MONGO_URI
-              # service name is mongo-client1 (K8s DNS)
               value: mongodb://mongo-client1:27017/mydb
           readinessProbe:
             httpGet:
@@ -98,45 +38,51 @@ spec:
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+
 ---
-# Backend Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-client1
+  name: client1-backend-service
   namespace: client1-namespace
 spec:
   selector:
-    app: backend-client1
+    app: client1-backend
   ports:
-    - port: 5000
-      targetPort: 5005
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
   type: ClusterIP
+
 ---
-# Frontend Deployment (React)
+# 💻 Frontend Deployment (React)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-client1
+  name: client1-frontend-deployment
   namespace: client1-namespace
   labels:
-    app: frontend-client1
+    app: client1-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: frontend-client1
+      app: client1-frontend
   template:
     metadata:
       labels:
-        app: frontend-client1
+        app: client1-frontend
     spec:
       containers:
         - name: frontend
-          # REPLACE this with your frontend image pushed to registry:
-          # e.g. image: kanagaraj1998/client1-frontend:latest
-          image: IMAGE_PLACEHOLDER_FRONTEND
-          imagePullPolicy: IfNotPresent
+          image: kanagaraj1998/kube-jenkins:client1-frontend-latest   # replaced dynamically in Jenkins
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           readinessProbe:
@@ -145,18 +91,9 @@ spec:
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
----
-# Frontend Service (NodePort) - external access via <node-ip>:30001
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-client1
-  namespace: client1-namespace
-spec:
-  selector:
-    app: frontend-client1
-  type: NodePort
-  ports:
-    - port: 3000
-      targetPort: 3005
-      nodePort: 30001
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
