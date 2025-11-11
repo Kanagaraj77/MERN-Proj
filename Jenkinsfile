@@ -88,9 +88,6 @@ pipeline {
     failure {
       echo "Pipeline failed. Check Jenkins logs for details."
     }
-    always {
-      echo "Pipeline finished at: (date)"
-    }
   }
 }
 
