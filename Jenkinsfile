@@ -2,6 +2,7 @@ pipeline {
   agent any
 
   environment {
+    DOCKER_HOST = 'unix:///var/run/docker.sock'
     DOCKER_REGISTRY = 'kanagaraj1998'
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
   }
@@ -12,15 +13,6 @@ pipeline {
       steps {
         echo '🔍 Cloning MERN-Proj repository...'
         git branch: 'qa', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
-      }
-    }
-
-    stage('Docker Login') {
-      steps {
-        echo '🔐 Logging into Docker Hub...'
-        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-        }
       }
     }
 
@@ -58,11 +50,13 @@ pipeline {
       steps {
         echo "🚀 Deploying Client-1 and Client-2 to Kubernetes..."
 
+        // Create namespaces if they don’t exist
         sh '''
         kubectl get ns client1-namespace || kubectl create ns client1-namespace
         kubectl get ns client2-namespace || kubectl create ns client2-namespace
         '''
 
+        // Replace image placeholders in YAML files
         sh '''
         sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}/client1-backend:latest|g" Client-1/client-1-k8s.yaml
         sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}/client1-frontend:latest|g" Client-1/client-1-k8s.yaml
@@ -71,11 +65,13 @@ pipeline {
         sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}/client2-frontend:latest|g" Client-2/client-2-k8s.yaml
         '''
 
+        // Apply manifests to respective namespaces
         sh '''
         kubectl apply -f Client-1/client-1-k8s.yaml --namespace=client1-namespace --validate=false
         kubectl apply -f Client-2/client-2-k8s.yaml --namespace=client2-namespace --validate=false
         '''
 
+        // Verify deployments
         sh '''
         kubectl get pods -n client1-namespace
         kubectl get pods -n client2-namespace
