@@ -4,6 +4,7 @@ pipeline {
   environment {
     DOCKER_REGISTRY = 'kanagaraj1998/kube-jenkins'
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    TAG = "${env.BUILD_NUMBER}" // Auto-incremented tag per Jenkins build
   }
 
   stages {
@@ -37,11 +38,11 @@ pipeline {
         sh "docker build -t client1-frontend -f ./Client-1/client/DockerFile ./Client-1/client"
         sh "docker build -t client1-backend -f ./Client-1/server/DockerFile ./Client-1/server"
 
-        sh "docker tag client1-frontend ${DOCKER_REGISTRY}:client1-frontend"
-        sh "docker tag client1-backend ${DOCKER_REGISTRY}:client1-backend"
+        sh "docker tag client1-frontend ${DOCKER_REGISTRY}:client1-frontend-${TAG}"
+        sh "docker tag client1-backend ${DOCKER_REGISTRY}:client1-backend-${TAG}"
 
-        sh "docker push ${DOCKER_REGISTRY}:client1-frontend"
-        sh "docker push ${DOCKER_REGISTRY}:client1-backend"
+        sh "docker push ${DOCKER_REGISTRY}:client1-frontend-${TAG}"
+        sh "docker push ${DOCKER_REGISTRY}:client1-backend-${TAG}"
       }
     }
 
@@ -52,11 +53,11 @@ pipeline {
         sh "docker build -t client2-frontend -f ./Client-2/client/DockerFile ./Client-2/client"
         sh "docker build -t client2-backend -f ./Client-2/server/DockerFile ./Client-2/server"
 
-        sh "docker tag client2-frontend ${DOCKER_REGISTRY}:client2-frontend"
-        sh "docker tag client2-backend ${DOCKER_REGISTRY}:client2-backend"
+        sh "docker tag client2-frontend ${DOCKER_REGISTRY}:client2-frontend-${TAG}"
+        sh "docker tag client2-backend ${DOCKER_REGISTRY}:client2-backend-${TAG}"
 
-        sh "docker push ${DOCKER_REGISTRY}:client2-frontend"
-        sh "docker push ${DOCKER_REGISTRY}:client2-backend"
+        sh "docker push ${DOCKER_REGISTRY}:client2-frontend-${TAG}"
+        sh "docker push ${DOCKER_REGISTRY}:client2-backend-${TAG}"
       }
     }
 
@@ -70,11 +71,11 @@ pipeline {
           kubectl get ns client2-namespace || kubectl create ns client2-namespace
 
           # Replace image placeholders in YAML files
-          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend|g" client-1-k8s.yaml
-          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend|g" client-1-k8s.yaml
+          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT1|${DOCKER_REGISTRY}:client1-backend-${TAG}|g" client-1-k8s.yaml
+          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT1|${DOCKER_REGISTRY}:client1-frontend-${TAG}|g" client-1-k8s.yaml
 
-          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend|g" client-2-k8s.yaml
-          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend|g" client-2-k8s.yaml
+          sed -i "s|IMAGE_PLACEHOLDER_BACKEND_CLIENT2|${DOCKER_REGISTRY}:client2-backend-${TAG}|g" client-2-k8s.yaml
+          sed -i "s|IMAGE_PLACEHOLDER_FRONTEND_CLIENT2|${DOCKER_REGISTRY}:client2-frontend-${TAG}|g" client-2-k8s.yaml
 
           # Apply manifests
           kubectl apply -f client-1-k8s.yaml --namespace=client1-namespace --validate=false
@@ -86,11 +87,22 @@ pipeline {
         '''
       }
     }
+
+    stage('Health Check') {
+      steps {
+        echo "🔍 Verifying frontend availability..."
+        sh '''
+          minikube_ip=$(minikube ip)
+          curl -f http://$minikube_ip:30001 || echo "⚠️ Client-1 frontend not reachable"
+          curl -f http://$minikube_ip:30002 || echo "⚠️ Client-2 frontend not reachable"
+        '''
+      }
+    }
   }
 
   post {
     success {
-      echo "✅ Deployment completed successfully for both Client-1 and Client-2!"
+      echo "✅ Full pipeline completed successfully!"
     }
     failure {
       echo "❌ Pipeline failed. Check Jenkins logs for details."
