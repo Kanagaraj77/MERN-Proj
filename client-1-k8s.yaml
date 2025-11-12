@@ -23,6 +23,8 @@ spec:
       labels:
         app: client1-backend
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
         - name: backend
           image: kanagaraj1998/kube-jenkins:client1-backend-__BACKEND_TAG__
@@ -79,6 +81,8 @@ spec:
       labels:
         app: client1-frontend
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
         - name: frontend
           image: kanagaraj1998/kube-jenkins:client1-frontend-__FRONTEND_TAG__
