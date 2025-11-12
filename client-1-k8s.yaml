@@ -5,6 +5,52 @@ metadata:
   name: client1-namespace
 
 ---
+# MongoDB Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-client1
+  namespace: client1-namespace
+  labels:
+    app: mongo-client1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-client1
+  template:
+    metadata:
+      labels:
+        app: mongo-client1
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:latest
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-client1
+  namespace: client1-namespace
+spec:
+  selector:
+    app: mongo-client1
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  clusterIP: None
+
+---
 # Backend Deployment (Express)
 apiVersion: apps/v1
 kind: Deployment
@@ -27,7 +73,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: backend
-          image: kanagaraj1998/kube-jenkins:client1-backend-__BACKEND_TAG__
+          image: kanagaraj1998/kube-jenkins:client1-backend-v2
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -85,7 +131,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: frontend
-          image: kanagaraj1998/kube-jenkins:client1-frontend-__FRONTEND_TAG__
+          image: kanagaraj1998/kube-jenkins:client1-frontend-v2
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
