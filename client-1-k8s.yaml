@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: kanagaraj1998/kube-jenkins:client1-backend-latest
+          image: kanagaraj1998/kube-jenkins:client1-backend-67
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: kanagaraj1998/kube-jenkins:client1-frontend-latest
+          image: kanagaraj1998/kube-jenkins:client1-frontend-67
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
