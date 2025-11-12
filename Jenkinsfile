@@ -4,8 +4,8 @@ pipeline {
   environment {
     REGISTRY_REPO = 'kanagaraj1998/kube-jenkins'
     KUBECONFIG = '/home/kanagu/.kube/config'
-    TAG = "${env.BUILD_NUMBER}"
-    DEPLOYMENT_FILE = 'client-1-k8s.yaml'  
+    BUILD_VERSION_FILE = 'version.txt'
+    DEPLOYMENT_FILE = 'client-1-k8s.yaml'
   }
 
   stages {
@@ -14,6 +14,20 @@ pipeline {
       steps {
         echo 'Checking out MERN-Proj repository...'
         git branch: 'qa', url: 'https://github.com/Kanagaraj77/MERN-Proj.git'
+      }
+    }
+
+    stage('Read or Create Version Tag') {
+      steps {
+        script {
+          echo "Reading or creating version file..."
+          // Read version file or start from v1
+          def version = fileExists(BUILD_VERSION_FILE) ? readFile(BUILD_VERSION_FILE).trim() : "v0"
+          def versionNumber = version.replace("v", "").toInteger() + 1
+          env.TAG = "v${versionNumber}"
+          writeFile file: BUILD_VERSION_FILE, text: env.TAG
+          echo "🔖 Using version tag: ${env.TAG}"
+        }
       }
     }
 
@@ -48,7 +62,7 @@ pipeline {
     stage('Tag & Push Images') {
       steps {
         script {
-          echo "Tagging and pushing Docker images..."
+          echo "Tagging and pushing Docker images with version ${TAG}..."
           sh '''
             docker tag client1-frontend:latest ${REGISTRY_REPO}:client1-frontend-${TAG}
             docker tag client1-backend:latest ${REGISTRY_REPO}:client1-backend-${TAG}
@@ -74,20 +88,19 @@ pipeline {
             echo "Applying updated Kubernetes manifests..."
             kubectl apply -f ${DEPLOYMENT_FILE}
 
-            echo "Deployment successful!"
+            echo "✅ Deployment successful with version ${TAG}!"
           '''
         }
       }
     }
-  } 
+  }
 
   post {
     success {
-      echo "Pipeline completed successfully! Images pushed and deployed with tag ${TAG}"
+      echo "✅ Pipeline completed successfully! Images pushed and deployed with tag ${TAG}"
     }
     failure {
-      echo "Pipeline failed. Check Jenkins logs for details."
+      echo "❌ Pipeline failed. Check Jenkins logs for details."
     }
   }
 }
-
