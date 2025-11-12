@@ -26,7 +26,7 @@ pipeline {
           def versionNumber = version.replace("v", "").toInteger() + 1
           env.TAG = "v${versionNumber}"
           writeFile file: BUILD_VERSION_FILE, text: env.TAG
-          echo "🔖 Using version tag: ${env.TAG}"
+          echo "Using version tag: ${env.TAG}"
         }
       }
     }
@@ -88,7 +88,7 @@ pipeline {
             echo "Applying updated Kubernetes manifests..."
             kubectl apply -f ${DEPLOYMENT_FILE}
 
-            echo "✅ Deployment successful with version ${TAG}!"
+            echo "Deployment successful with version ${TAG}!"
           '''
         }
       }
@@ -97,10 +97,10 @@ pipeline {
 
   post {
     success {
-      echo "✅ Pipeline completed successfully! Images pushed and deployed with tag ${TAG}"
+      echo "Pipeline completed successfully! Images pushed and deployed with tag ${TAG}"
     }
     failure {
-      echo "❌ Pipeline failed. Check Jenkins logs for details."
+      echo "Pipeline failed. Check Jenkins logs for details."
     }
   }
 }

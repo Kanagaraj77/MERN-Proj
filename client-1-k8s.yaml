@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: kanagaraj1998/kube-jenkins:client1-backend-67
+          image: kanagaraj1998/kube-jenkins:client1-backend-__BACKEND_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -58,7 +58,7 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 5000
-  type: LoadBalancer   # ⬅️ changed from ClusterIP
+  type: LoadBalancer
 
 ---
 # Frontend Deployment (React)
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: kanagaraj1998/kube-jenkins:client1-frontend-67
+          image: kanagaraj1998/kube-jenkins:client1-frontend-__FRONTEND_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -111,4 +111,4 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-  type: LoadBalancer   # ⬅️ Expose outside cluster
+  type: LoadBalancer
