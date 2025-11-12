@@ -5,6 +5,14 @@ metadata:
   name: client1-namespace
 
 ---
+# DockerHub secret (run separately, not part of YAML)
+# kubectl create secret docker-registry dockerhub-secret \
+#   --docker-username=YOUR_USERNAME \
+#   --docker-password=YOUR_PASSWORD \
+#   --docker-email=YOUR_EMAIL \
+#   -n client1-namespace
+
+---
 # MongoDB Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -36,6 +44,7 @@ spec:
           emptyDir: {}
 
 ---
+# MongoDB Service (headless for direct connection)
 apiVersion: v1
 kind: Service
 metadata:
@@ -84,16 +93,17 @@ spec:
             httpGet:
               path: /health
               port: 5000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /health
               port: 5000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 20
 
 ---
+# Backend Service (LoadBalancer)
 apiVersion: v1
 kind: Service
 metadata:
@@ -139,16 +149,17 @@ spec:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 20
 
 ---
+# Frontend Service (LoadBalancer)
 apiVersion: v1
 kind: Service
 metadata:
